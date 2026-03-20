@@ -15,5 +15,8 @@ public class WishlistItemResponse {
     private Integer maxQuantity;
     private String image;
     private Integer quantity;
+    private BigDecimal originalPrice;
+    private BigDecimal discountPercent;
     private BigDecimal priceSnapshot;
+    private BigDecimal lineTotal;
 }

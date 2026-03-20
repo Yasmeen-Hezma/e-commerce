@@ -56,7 +56,7 @@ class PaypalPaymentStrategyTest {
         order = Order
                 .builder()
                 .orderId(1L)
-                .orderTotal(BigDecimal.valueOf(100.00))
+                .totalPrice(BigDecimal.valueOf(100.00))
                 .status(OrderStatus.PENDING)
                 .build();
         paymentTransaction = PaymentTransaction
@@ -93,7 +93,7 @@ class PaypalPaymentStrategyTest {
     @Test
     void createPaypalPayment_ShouldThrowException_WhenInvalidOrderTotal() {
         // Arrange
-        order.setOrderTotal(BigDecimal.ZERO);
+        order.setTotalPrice(BigDecimal.ZERO);
         when(orderService.getOrderById(1L)).thenReturn(order);
         when(paymentOrderValidationChain.build()).thenReturn(paymentOrderValidator);
         doThrow(new InvalidOrderTotalException(INVALID_ORDER_TOTAL))

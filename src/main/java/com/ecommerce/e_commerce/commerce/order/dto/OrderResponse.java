@@ -14,12 +14,23 @@ import java.util.List;
 @Getter
 @Builder
 public class OrderResponse {
+    // Order info
     private Long id;
     private Long userId;
     private List<OrderItemResponse> items;
     private OrderStatus status;
-    private BigDecimal totalPrice;
     private Instant createdAt;
+    // Pricing
+
+    private BigDecimal subtotal;
+    private BigDecimal productDiscounts;
+    private BigDecimal firstOrderDiscount;
+    private BigDecimal tax;
+    private BigDecimal shipping;
+    private BigDecimal promoDiscount;
+    private BigDecimal totalPrice;
+    private String promoCodeUsed;
+    // Relationships
     private PaymentResponse payment;
     private UserAddressDto address;
 }

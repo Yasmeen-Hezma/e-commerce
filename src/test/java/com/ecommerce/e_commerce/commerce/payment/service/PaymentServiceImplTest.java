@@ -54,7 +54,7 @@ class PaymentServiceImplTest {
         order = Order
                 .builder()
                 .orderId(1L)
-                .orderTotal(BigDecimal.valueOf(100.00))
+                .totalPrice(BigDecimal.valueOf(100.00))
                 .status(OrderStatus.PENDING)
                 .build();
         paymentTransaction = PaymentTransaction

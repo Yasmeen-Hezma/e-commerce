@@ -11,6 +11,8 @@ import com.ecommerce.e_commerce.commerce.cart.model.CartItem;
 import com.ecommerce.e_commerce.commerce.cart.model.CartItemId;
 import com.ecommerce.e_commerce.commerce.cart.repository.CartItemRepository;
 import com.ecommerce.e_commerce.commerce.cart.repository.CartRepository;
+import com.ecommerce.e_commerce.commerce.pricing.model.PriceResult;
+import com.ecommerce.e_commerce.commerce.pricing.service.PricingService;
 import com.ecommerce.e_commerce.common.exception.EmptyCartException;
 import com.ecommerce.e_commerce.commerce.product.dto.StockWarning;
 import com.ecommerce.e_commerce.commerce.product.model.Product;
@@ -22,6 +24,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +39,7 @@ public class CartServiceImpl implements CartService {
     private final ProductService productService;
     private final CartItemMapper cartItemMapper;
     private final UserService userService;
+    private final PricingService pricingService;
 
     private record CartItemResult(CartItem cartItem, boolean isNew) {
     }
@@ -54,7 +58,13 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartResponse getCartResponseByUser(HttpServletRequest request) {
         Cart cart = getCartByUser(request);
-        return cartMapper.toResponse(cart);
+        PriceResult pricing = pricingService.calculateCart(cart.getCartItems());
+        CartResponse response = cartMapper.toResponse(cart);
+        BigDecimal totalDiscounts = pricing.productDiscount().add(pricing.firstOrderDiscount()).add(pricing.promoDiscount());
+        response.setSubTotal(pricing.subtotal());
+        response.setProductDiscounts(totalDiscounts);
+        response.setTotalPrice(pricing.total());
+        return response;
     }
 
     @Override
@@ -64,7 +74,13 @@ public class CartServiceImpl implements CartService {
         List<StockWarning> warnings = new ArrayList<>();
         List<CartItem> updatedItems = buildMergedCartItems(updateRequest, cart, warnings);
         updateCart(updatedItems, cart);
-        return cartMapper.toResponseWithWarnings(cart, warnings);
+        PriceResult pricing = pricingService.calculateCart(cart.getCartItems());
+        CartResponse response = cartMapper.toResponseWithWarnings(cart, warnings);
+        BigDecimal totalDiscounts = pricing.productDiscount().add(pricing.firstOrderDiscount()).add(pricing.promoDiscount());
+        response.setSubTotal(pricing.subtotal());
+        response.setProductDiscounts(totalDiscounts);
+        response.setTotalPrice(pricing.total());
+        return response;
     }
 
     @Override
@@ -192,7 +208,7 @@ public class CartServiceImpl implements CartService {
                 .product(product)
                 .cart(cart)
                 .quantity(quantity)
-                .priceSnapshot(product.getPrice())
+                .priceSnapshot(pricingService.calculatePriceSnapshot(product))
                 .build();
     }
 }

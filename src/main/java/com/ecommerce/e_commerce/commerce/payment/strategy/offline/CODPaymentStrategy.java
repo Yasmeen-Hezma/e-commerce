@@ -63,7 +63,7 @@ public class CODPaymentStrategy implements OfflinePaymentStrategy {
         paymentTransaction.setPaymentStatus(PaymentStatus.COMPLETED);
         paymentTransactionRepository.save(paymentTransaction);
         applicationEventPublisher
-                .publishEvent(new OrderCompletedEvent(orderId, order.getOrderTotal(), order.getUser().getAuthUser().getEmail()));
+                .publishEvent(new OrderCompletedEvent(orderId, order.getTotalPrice(), order.getUser().getAuthUser().getEmail()));
     }
 
     private PaymentTransaction createPaymentTransactionCOD(Order order) {
@@ -72,7 +72,7 @@ public class CODPaymentStrategy implements OfflinePaymentStrategy {
                 .order(order)
                 .paymentMethod(PaymentMethod.COD)
                 .paymentStatus(PaymentStatus.PENDING)
-                .amount(order.getOrderTotal())
+                .amount(order.getTotalPrice())
                 .currency(USD)
                 .build();
     }

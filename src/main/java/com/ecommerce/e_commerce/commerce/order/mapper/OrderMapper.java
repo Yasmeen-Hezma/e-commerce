@@ -17,7 +17,6 @@ public interface OrderMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "orderItems", target = "items")
     @Mapping(source = "status", target = "status")
-    @Mapping(source = "orderTotal", target = "totalPrice")
     @Mapping(source = "createdAt", target = "createdAt")
     @Mapping(source = "paymentTransaction", target = "payment")
     // Address mapping
@@ -28,6 +27,15 @@ public interface OrderMapper {
     @Mapping(source = "shippingApartmentNumber", target = "address.apartmentNumber")
     @Mapping(source = "shippingPhone", target = "address.phone")
     @Mapping(source = "deliveryNotes", target = "address.deliveryNotes")
+    // Pricing
+    @Mapping(source = "subtotal",target = "subtotal")
+    @Mapping(source ="productDiscounts",target = "productDiscounts")
+    @Mapping(source = "firstOrderDiscount",target = "firstOrderDiscount")
+    @Mapping(source = "tax", target = "tax")
+    @Mapping(source = "shipping",target = "shipping")
+    @Mapping(source = "promoDiscount",target = "promoDiscount")
+    @Mapping(source = "totalPrice",target = "totalPrice")
+    @Mapping(source = "promoCodeUsed",target = "promoCodeUsed")
     OrderResponse toOrderResponse(Order order);
 
     @Mapping(target = "itemCount", expression = "java(order.getOrderItems() != null ? order.getOrderItems().size() : 0)")

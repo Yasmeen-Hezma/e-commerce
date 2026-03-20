@@ -1,5 +1,6 @@
 package com.ecommerce.e_commerce.commerce.wishlist.service;
 
+import com.ecommerce.e_commerce.commerce.pricing.service.PricingService;
 import com.ecommerce.e_commerce.common.exception.ItemNotFoundException;
 import com.ecommerce.e_commerce.commerce.product.dto.StockWarning;
 import com.ecommerce.e_commerce.commerce.product.model.Product;
@@ -38,6 +39,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final ProductService productService;
     private final WishlistMapper wishlistMapper;
     private final WishlistItemMapper wishlistItemMapper;
+    private final PricingService pricingService;
 
     private record WishlistItemResult(WishlistItem wishlistItem, boolean isNew) {
 
@@ -130,7 +132,7 @@ public class WishlistServiceImpl implements WishlistService {
                 .product(product)
                 .wishlist(wishlist)
                 .quantity(quantity)
-                .priceSnapshot(product.getPrice())
+                .priceSnapshot(pricingService.calculatePriceSnapshot(product))
                 .build();
     }
 

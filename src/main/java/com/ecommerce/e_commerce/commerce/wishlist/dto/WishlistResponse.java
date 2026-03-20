@@ -14,6 +14,5 @@ public class WishlistResponse {
     private Long id;
     private Long userId;
     private List<WishlistItemResponse> items;
-  //  private BigDecimal totalPrice;
     private List<StockWarning> warnings;
 }

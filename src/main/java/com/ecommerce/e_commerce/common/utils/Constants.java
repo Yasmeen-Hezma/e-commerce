@@ -2,6 +2,8 @@ package com.ecommerce.e_commerce.common.utils;
 
 import lombok.experimental.UtilityClass;
 
+import java.math.BigDecimal;
+
 @UtilityClass
 public class Constants {
 
@@ -65,6 +67,16 @@ public class Constants {
 
     // File Handling
     public static final String FAILED_TO_SAVE_IMAGE = "Failed to save image";
+
+    // Pricing
+    public static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("500.00");
+    public static final BigDecimal CAIRO_SHIPPING = new BigDecimal("30.00");
+    public static final BigDecimal ALEXANDRIA_SHIPPING = new BigDecimal("40.00");
+    public static final BigDecimal DEFAULT_SHIPPING = new BigDecimal("40.00");
+    public static final BigDecimal SAVE_15_PROMO_CODE = new BigDecimal("0.15");
+    public static final BigDecimal SAVE_20_PROMO_CODE = new BigDecimal("0.20");
+    public static final BigDecimal FIRST_ORDER_DISCOUNT = new BigDecimal("50.00");
+    public static final String INVALID_PROMO_CODE = "Invalid promo code";
 
     // General
     public static final String ERROR_HANDLING_REQUEST = "Error handling request";

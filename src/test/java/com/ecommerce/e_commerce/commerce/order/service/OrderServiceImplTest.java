@@ -12,6 +12,8 @@ import com.ecommerce.e_commerce.commerce.order.enums.OrderStatus;
 import com.ecommerce.e_commerce.commerce.order.mapper.OrderMapper;
 import com.ecommerce.e_commerce.commerce.order.model.Order;
 import com.ecommerce.e_commerce.commerce.order.repository.OrderRepository;
+import com.ecommerce.e_commerce.commerce.pricing.model.PriceResult;
+import com.ecommerce.e_commerce.commerce.pricing.service.PricingService;
 import com.ecommerce.e_commerce.commerce.product.enums.ProductStatus;
 import com.ecommerce.e_commerce.commerce.product.model.Product;
 import com.ecommerce.e_commerce.commerce.product.service.ProductService;
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.method.P;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -53,22 +56,22 @@ class OrderServiceImplTest {
     private OrderMapper orderMapper;
     @Mock
     private HttpServletRequest httpRequest;
+    @Mock
+    private PricingService pricingService;
     @InjectMocks
     private OrderServiceImpl orderService;
 
     private User user;
     private Order order;
-    private Product product;
-    private CartItem cartItem;
     private Cart cart;
     private OrderResponse orderResponse;
     private UserAddressDto addressDto;
     private ShippingAddressRequest shippingAddressRequest;
-    private OrderItemResponse orderItemResponse;
+    private PriceResult priceResult;
 
     @BeforeEach
     void setUp() {
-        product = Product
+        Product product = Product
                 .builder()
                 .productId(100L)
                 .productName("test product")
@@ -109,7 +112,7 @@ class OrderServiceImplTest {
         cartItemId.setProduct(100L);
         cartItemId.setCart(1L);
 
-        cartItem = CartItem
+        CartItem cartItem = CartItem
                 .builder()
                 .id(cartItemId)
                 .cart(cart)
@@ -126,10 +129,20 @@ class OrderServiceImplTest {
                 .user(user)
                 .status(OrderStatus.PENDING)
                 .orderItems(new ArrayList<>())
-                .orderTotal(BigDecimal.valueOf(199.98))
+                .totalPrice(BigDecimal.valueOf(257.98))
+                .build();
+        priceResult = PriceResult
+                .builder()
+                .subtotal(BigDecimal.valueOf(199.98))
+                .shipping(BigDecimal.valueOf(30.00))
+                .tax(BigDecimal.valueOf(0.14))
+                .firstOrderDiscount(BigDecimal.ZERO)
+                .productDiscount(BigDecimal.ZERO)
+                .promoDiscount(BigDecimal.ZERO)
+                .total(BigDecimal.valueOf(257.98))
                 .build();
 
-        orderItemResponse = OrderItemResponse
+        OrderItemResponse orderItemResponse = OrderItemResponse
                 .builder()
                 .productId(100L)
                 .price(BigDecimal.valueOf(99.99))
@@ -171,18 +184,19 @@ class OrderServiceImplTest {
         // Arrange
         when(cartService.getCartByUser(httpRequest)).thenReturn(cart);
         when(userService.getUserByRequest(httpRequest)).thenReturn(user);
+        when(pricingService.calculateCheckoutPreview(cart.getCartItems(), user, "Cairo")).thenReturn(priceResult);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order savedOrder = invocation.getArgument(0);
             savedOrder.setOrderId(1L);
             assertThat(savedOrder.getUser()).isEqualTo(user);
             assertThat(savedOrder.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(savedOrder.getOrderItems()).hasSize(1);
-            assertThat(savedOrder.getOrderTotal()).isEqualTo(BigDecimal.valueOf(199.98));
+            assertThat(savedOrder.getTotalPrice()).isEqualTo(BigDecimal.valueOf(257.98));
             return savedOrder;
         });
         when(orderMapper.toOrderResponse(any(Order.class))).thenReturn(orderResponse);
         // Act
-        OrderResponse result = orderService.createOrderFromCart(httpRequest);
+        OrderResponse result = orderService.createOrderFromCart(httpRequest, null, "Cairo");
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
@@ -190,6 +204,7 @@ class OrderServiceImplTest {
         verify(cartService).checkCartExisting(cart);
         verify(productService).checkStockAvailability(cart.getCartItems());
         verify(userService).getUserByRequest(httpRequest);
+        verify(pricingService).calculateCheckoutPreview(cart.getCartItems(), user, "Cairo");
         verify(orderRepository).save(any(Order.class));
         verify(orderMapper).toOrderResponse(any(Order.class));
     }
@@ -201,7 +216,7 @@ class OrderServiceImplTest {
         doThrow(new EmptyCartException(CART_IS_EMPTY))
                 .when(cartService).checkCartExisting(cart);
         // Act & Assert
-        assertThatThrownBy(() -> orderService.createOrderFromCart(httpRequest))
+        assertThatThrownBy(() -> orderService.createOrderFromCart(httpRequest, null, "Cairo"))
                 .isInstanceOf(EmptyCartException.class)
                 .hasMessageContaining(CART_IS_EMPTY);
         verify(cartService).getCartByUser(httpRequest);

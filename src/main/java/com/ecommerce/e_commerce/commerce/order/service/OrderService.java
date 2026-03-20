@@ -6,7 +6,7 @@ import com.ecommerce.e_commerce.commerce.order.model.Order;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface OrderService {
-    OrderResponse createOrderFromCart(HttpServletRequest request);
+    OrderResponse createOrderFromCart(HttpServletRequest request, String promoCode, String governorate);
 
     OrderResponse addShippingAddress(Long orderId, ShippingAddressRequest addressRequest, HttpServletRequest request);
 

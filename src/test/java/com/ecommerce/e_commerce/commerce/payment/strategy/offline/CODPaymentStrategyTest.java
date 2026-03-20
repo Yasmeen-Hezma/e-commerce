@@ -90,7 +90,7 @@ class CODPaymentStrategyTest {
         order = Order
                 .builder()
                 .orderId(1L)
-                .orderTotal(BigDecimal.valueOf(100.00))
+                .totalPrice(BigDecimal.valueOf(100.00))
                 .status(OrderStatus.PENDING)
                 .user(user)
                 .build();
@@ -141,7 +141,7 @@ class CODPaymentStrategyTest {
     @Test
     void createCODPayment_ShouldThrowException_WhenInValidOrderTotal() {
         // Arrange
-        order.setOrderTotal(BigDecimal.ZERO);
+        order.setTotalPrice(BigDecimal.ZERO);
         when(orderService.getOrderById(1L)).thenReturn(order);
         when(paymentOrderValidationChain.build()).thenReturn(paymentOrderValidator);
         doThrow(new InvalidOrderTotalException(INVALID_ORDER_TOTAL))

@@ -4,6 +4,8 @@ package com.ecommerce.e_commerce.commerce.order.service;
 import com.ecommerce.e_commerce.commerce.cart.model.Cart;
 import com.ecommerce.e_commerce.commerce.cart.model.CartItem;
 import com.ecommerce.e_commerce.commerce.cart.service.CartService;
+import com.ecommerce.e_commerce.commerce.pricing.model.PriceResult;
+import com.ecommerce.e_commerce.commerce.pricing.service.PricingService;
 import com.ecommerce.e_commerce.common.exception.InvalidOperationException;
 import com.ecommerce.e_commerce.common.exception.ItemNotFoundException;
 import com.ecommerce.e_commerce.common.exception.UnauthorizedException;
@@ -37,17 +39,18 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartService cartService;
     private final OrderMapper orderMapper;
+    private final PricingService pricingService;
 
     @Override
     @Transactional
-    public OrderResponse createOrderFromCart(HttpServletRequest request) {
+    public OrderResponse createOrderFromCart(HttpServletRequest request, String promoCode, String governorate) {
         Cart cart = cartService.getCartByUser(request);
         cartService.checkCartExisting(cart);
         productService.checkStockAvailability(cart.getCartItems());
         User user = userService.getUserByRequest(request);
-        Order order = buildOrder(user);
+        PriceResult pricing = getPriceResult(promoCode, governorate, cart, user);
+        Order order = buildOrder(user, pricing, promoCode);
         setOrderItemsToOrder(order, cart);
-        setTotalPriceForOrder(order);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toOrderResponse(savedOrder);
     }
@@ -93,10 +96,18 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toOrderResponse(order);
     }
 
-    private Order buildOrder(User user) {
+    private Order buildOrder(User user, PriceResult pricing, String promoCode) {
         return Order.builder()
                 .user(user)
+                .subtotal(pricing.subtotal())
+                .productDiscounts(pricing.productDiscount())
+                .tax(pricing.tax())
+                .shipping(pricing.shipping())
+                .firstOrderDiscount(pricing.firstOrderDiscount())
+                .totalPrice(pricing.total())
                 .status(OrderStatus.PENDING)
+                .promoDiscount(pricing.promoDiscount())
+                .promoCodeUsed(promoCode)
                 .build();
     }
 
@@ -125,9 +136,14 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private void setTotalPriceForOrder(Order order) {
-        BigDecimal totalPrice = calculateTotalPriceForOrder(order.getOrderItems());
-        order.setOrderTotal(totalPrice);
+    private PriceResult getPriceResult(String promoCode, String governorate, Cart cart, User user) {
+        PriceResult pricing;
+        if (promoCode != null) {
+            pricing = pricingService.calculateWithPromo(cart.getCartItems(), user, promoCode, governorate);
+        } else {
+            pricing = pricingService.calculateCheckoutPreview(cart.getCartItems(), user, governorate);
+        }
+        return pricing;
     }
 
     private void setShippingAddressFromDto(Order order, UserAddressDto defaultAddress) {

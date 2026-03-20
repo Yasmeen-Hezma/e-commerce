@@ -116,7 +116,7 @@ public class PaypalPaymentStrategy implements OnlinePaymentStrategy {
                 order.setStatus(OrderStatus.CONFIRMED);
                 orderRepository.save(order);
                 applicationEventPublisher
-                        .publishEvent(new OrderCompletedEvent(orderId, order.getOrderTotal(), order.getUser().getAuthUser().getEmail()));
+                        .publishEvent(new OrderCompletedEvent(orderId, order.getTotalPrice(), order.getUser().getAuthUser().getEmail()));
                 return OnlineCaptureResponse
                         .builder()
                         .orderId(orderId)
@@ -147,7 +147,7 @@ public class PaypalPaymentStrategy implements OnlinePaymentStrategy {
                 .orderId(order.getOrderId())
                 .status(paypalOrder.status())
                 .approvalUrl(approvalUrl)
-                .amount(order.getOrderTotal())
+                .amount(order.getTotalPrice())
                 .currency(USD)
                 .build();
     }
@@ -159,7 +159,7 @@ public class PaypalPaymentStrategy implements OnlinePaymentStrategy {
                 .paymentMethod(PaymentMethod.PAYPAL)
                 .paymentStatus(PaymentStatus.PENDING)
                 .paypalOrderId(paypalOrder.id())
-                .amount(order.getOrderTotal())
+                .amount(order.getTotalPrice())
                 .currency(USD)
                 .build();
     }
@@ -184,7 +184,7 @@ public class PaypalPaymentStrategy implements OnlinePaymentStrategy {
                 .softDescriptor(E_COMMERCE)
                 .amountWithBreakdown(new AmountWithBreakdown()
                         .currencyCode(USD)
-                        .value(order.getOrderTotal().toString())));
+                        .value(order.getTotalPrice().toString())));
         orderRequest.purchaseUnits(purchaseUnits);
         return orderRequest;
     }

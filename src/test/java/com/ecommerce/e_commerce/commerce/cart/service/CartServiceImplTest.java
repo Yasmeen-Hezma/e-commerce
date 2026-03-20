@@ -11,6 +11,8 @@ import com.ecommerce.e_commerce.commerce.cart.model.CartItem;
 import com.ecommerce.e_commerce.commerce.cart.model.CartItemId;
 import com.ecommerce.e_commerce.commerce.cart.repository.CartItemRepository;
 import com.ecommerce.e_commerce.commerce.cart.repository.CartRepository;
+import com.ecommerce.e_commerce.commerce.pricing.model.PriceResult;
+import com.ecommerce.e_commerce.commerce.pricing.service.PricingService;
 import com.ecommerce.e_commerce.commerce.product.dto.StockWarning;
 import com.ecommerce.e_commerce.commerce.product.enums.StockWarningType;
 import com.ecommerce.e_commerce.commerce.product.model.Product;
@@ -51,6 +53,8 @@ class CartServiceImplTest {
     @Mock
     private UserService userService;
     @Mock
+    private PricingService pricingService;
+    @Mock
     private HttpServletRequest httpRequest;
     @InjectMocks
     private CartServiceImpl cartService;
@@ -62,6 +66,7 @@ class CartServiceImplTest {
     private CartItemRequest cartItemRequest;
     private CartItemResponse cartItemResponse;
     private CartResponse cartResponse;
+    private PriceResult priceResult;
 
     @BeforeEach
     void setUp() {
@@ -82,6 +87,7 @@ class CartServiceImplTest {
                 .description("test description")
                 .quantity(50)
                 .price(BigDecimal.valueOf(99.99))
+                .discount(BigDecimal.TEN)
                 .deleted(false)
                 .cartItems(new ArrayList<>())
                 .orderItems(new ArrayList<>())
@@ -100,7 +106,7 @@ class CartServiceImplTest {
                 .cart(cart)
                 .product(product)
                 .quantity(2)
-                .priceSnapshot(BigDecimal.valueOf(99.99))
+                .priceSnapshot(BigDecimal.valueOf(89.99))
                 .build();
 
         cartItemRequest = new CartItemRequest();
@@ -112,14 +118,29 @@ class CartServiceImplTest {
                 .productId(100L)
                 .productName("test product")
                 .quantity(2)
-                .priceSnapshot(BigDecimal.valueOf(99.99))
+                .originalPrice(BigDecimal.valueOf(99.99))
+                .priceSnapshot(BigDecimal.valueOf(89.99))
+                .discountPercent(BigDecimal.TEN)
+                .lineTotal(BigDecimal.valueOf(179.98))
                 .build();
         cartResponse = CartResponse
                 .builder()
                 .id(1L)
                 .userId(1L)
                 .items(List.of(cartItemResponse))
-                .totalPrice(BigDecimal.valueOf(199.98))
+                .subTotal(BigDecimal.valueOf(199.98))
+                .productDiscounts(BigDecimal.valueOf(19.98))
+                .totalPrice(BigDecimal.valueOf(180))
+                .build();
+        priceResult = PriceResult
+                .builder()
+                .subtotal(BigDecimal.valueOf(199.98))
+                .productDiscount(BigDecimal.valueOf(19.98))
+                .total(BigDecimal.valueOf(180))
+                .shipping(BigDecimal.ZERO)
+                .tax(BigDecimal.ZERO)
+                .firstOrderDiscount(BigDecimal.ZERO)
+                .promoDiscount(BigDecimal.ZERO)
                 .build();
     }
 
@@ -226,14 +247,18 @@ class CartServiceImplTest {
         when(userService.getUserId(httpRequest)).thenReturn(1L);
         when(userService.getUserById(1L)).thenReturn(user);
         when(cartRepository.findByUser_UserId(1L)).thenReturn(Optional.of(cart));
+        when(pricingService.calculateCart(cart.getCartItems())).thenReturn(priceResult);
         when(cartMapper.toResponse(cart)).thenReturn(cartResponse);
         // Act
         CartResponse result = cartService.getCartResponseByUser(httpRequest);
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.getUserId()).isEqualTo(1L);
+        assertThat(result.getTotalPrice()).isEqualTo(BigDecimal.valueOf(180));
+        assertThat(result.getProductDiscounts()).isEqualTo(BigDecimal.valueOf(19.98));
         verify(userService).getUserId(httpRequest);
         verify(cartRepository).findByUser_UserId(1L);
+        verify(pricingService).calculateCart(cart.getCartItems());
         verify(cartMapper).toResponse(cart);
     }
 
@@ -245,16 +270,20 @@ class CartServiceImplTest {
         when(cartRepository.findByUser_UserId(1L)).thenReturn(Optional.empty());
         when(userService.getUserById(1L)).thenReturn(user);
         when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+        when(pricingService.calculateCart(cart.getCartItems())).thenReturn(priceResult);
         when(cartMapper.toResponse(any(Cart.class))).thenReturn(cartResponse);
         // Act
         CartResponse result = cartService.getCartResponseByUser(httpRequest);
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.getUserId()).isEqualTo(1L);
+        assertThat(result.getTotalPrice()).isEqualTo(BigDecimal.valueOf(180));
+        assertThat(result.getProductDiscounts()).isEqualTo(BigDecimal.valueOf(19.98));
         verify(userService).getUserId(httpRequest);
         verify(cartRepository).findByUser_UserId(1L);
         verify(userService, times(2)).getUserById(1L);
         verify(cartRepository).save(any(Cart.class));
+        verify(pricingService).calculateCart(cart.getCartItems());
         verify(cartMapper).toResponse(any(Cart.class));
     }
 
@@ -288,6 +317,7 @@ class CartServiceImplTest {
         when(cartRepository.findByUser_UserId(1L)).thenReturn(Optional.of(cart));
         when(productService.getNonDeletedProductById(100L)).thenReturn(product);
         when(productService.checkStockAndWarn(product, 5)).thenReturn(Optional.empty());
+        when(pricingService.calculateCart(cart.getCartItems())).thenReturn(priceResult);
         when(cartMapper.toResponseWithWarnings(any(Cart.class), anyList()))
                 .thenAnswer(invocation -> {
                     Cart c = invocation.getArgument(0);
@@ -315,6 +345,7 @@ class CartServiceImplTest {
         verify(cartRepository).findByUser_UserId(1L);
         verify(productService).getNonDeletedProductById(100L);
         verify(productService).checkStockAndWarn(product, 5);
+        verify(pricingService).calculateCart(cart.getCartItems());
         verify(cartMapper).toResponseWithWarnings(any(Cart.class), anyList());
     }
 
@@ -339,6 +370,7 @@ class CartServiceImplTest {
         when(cartRepository.findByUser_UserId(1L)).thenReturn(Optional.of(cart));
         when(productService.getNonDeletedProductById(100L)).thenReturn(product);
         when(productService.checkStockAndWarn(product, 500)).thenReturn(Optional.of(warning));
+        when(pricingService.calculateCart(cart.getCartItems())).thenReturn(priceResult);
         when(cartMapper.toResponseWithWarnings(any(Cart.class), anyList()))
                 .thenAnswer(invocation -> {
                     Cart c = invocation.getArgument(0);
@@ -370,6 +402,7 @@ class CartServiceImplTest {
         verify(cartRepository).findByUser_UserId(1L);
         verify(productService).getNonDeletedProductById(100L);
         verify(productService).checkStockAndWarn(product, 500);
+        verify(pricingService).calculateCart(cart.getCartItems());
         verify(cartMapper).toResponseWithWarnings(any(Cart.class), anyList());
     }
 
@@ -398,6 +431,7 @@ class CartServiceImplTest {
         when(cartRepository.findByUser_UserId(1L)).thenReturn(Optional.of(cart));
         when(productService.getNonDeletedProductById(100L)).thenReturn(product);
         when(productService.checkStockAndWarn(product, 3)).thenReturn(Optional.empty());
+        when(pricingService.calculateCart(cart.getCartItems())).thenReturn(priceResult);
         when(cartMapper.toResponseWithWarnings(any(Cart.class), anyList()))
                 .thenAnswer(invocation -> {
                     Cart c = invocation.getArgument(0);
@@ -426,6 +460,7 @@ class CartServiceImplTest {
         verify(cartRepository).findByUser_UserId(1L);
         verify(productService).getNonDeletedProductById(100L);
         verify(productService).checkStockAndWarn(product, 3);
+        verify(pricingService).calculateCart(cart.getCartItems());
         verify(cartMapper).toResponseWithWarnings(any(Cart.class), anyList());
     }
 

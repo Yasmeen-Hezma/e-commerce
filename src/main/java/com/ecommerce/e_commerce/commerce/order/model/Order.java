@@ -41,8 +41,29 @@ public class Order {
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
-    @Column(name = "order_total", precision = 19, scale = 2)
-    private BigDecimal orderTotal;
+    @Column(name = "subtotal", precision = 19, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(name = "product_discounts", precision = 19, scale = 2)
+    private BigDecimal productDiscounts;
+
+    @Column(name = "first_order_discount", precision = 19, scale = 2)
+    private BigDecimal firstOrderDiscount;
+
+    @Column(name = "promo_code_used", length = 50)
+    private String promoCodeUsed;                    // ← The code itself
+
+    @Column(name = "promo_discount", precision = 19, scale = 2)
+    private BigDecimal promoDiscount;                // ← The amount saved
+
+    @Column(name = "shipping", precision = 19, scale = 2)
+    private BigDecimal shipping;
+
+    @Column(name = "tax", precision = 19, scale = 2)
+    private BigDecimal tax;
+
+    @Column(name = "total_price", precision = 19, scale = 2)
+    private BigDecimal totalPrice;
 
     @Column(name = "shipping_governorate")
     private String shippingGovernorate;

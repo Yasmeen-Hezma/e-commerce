@@ -25,8 +25,10 @@ public class OrderController {
 
     @Operation(summary = "Create new order")
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(HttpServletRequest request) {
-        return ResponseEntity.ok(orderService.createOrderFromCart(request));
+    public ResponseEntity<OrderResponse> createOrder(HttpServletRequest request
+            , @RequestParam(required = false) String promoCode
+            , @RequestParam String governorate) {
+        return ResponseEntity.ok(orderService.createOrderFromCart(request, promoCode, governorate));
     }
 
     @Operation(summary = "Add shipping address to an order")

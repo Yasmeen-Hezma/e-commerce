@@ -1,5 +1,6 @@
 package com.ecommerce.e_commerce.commerce.wishlist.service;
 
+import com.ecommerce.e_commerce.commerce.pricing.service.PricingService;
 import com.ecommerce.e_commerce.commerce.product.dto.StockWarning;
 import com.ecommerce.e_commerce.commerce.product.enums.StockWarningType;
 import com.ecommerce.e_commerce.commerce.product.model.Product;
@@ -54,6 +55,8 @@ class WishlistServiceImplTest {
     @Mock
     private UserService userService;
     @Mock
+    private PricingService pricingService;
+    @Mock
     private HttpServletRequest httpRequest;
     @InjectMocks
     private WishlistServiceImpl wishlistService;
@@ -85,6 +88,7 @@ class WishlistServiceImplTest {
                 .description("test description")
                 .quantity(50)
                 .price(BigDecimal.valueOf(99.99))
+                .discount(BigDecimal.TEN)
                 .deleted(false)
                 .cartItems(new ArrayList<>())
                 .orderItems(new ArrayList<>())
@@ -103,7 +107,7 @@ class WishlistServiceImplTest {
                 .wishlist(wishlist)
                 .product(product)
                 .quantity(2)
-                .priceSnapshot(BigDecimal.valueOf(99.99))
+                .priceSnapshot(BigDecimal.valueOf(89.99))
                 .build();
 
         wishlistItemRequest = new WishlistItemRequest();
@@ -115,7 +119,10 @@ class WishlistServiceImplTest {
                 .productId(100L)
                 .productName("test product")
                 .quantity(2)
-                .priceSnapshot(BigDecimal.valueOf(99.99))
+                .originalPrice(BigDecimal.valueOf(99.99))
+                .priceSnapshot(BigDecimal.valueOf(89.99))
+                .discountPercent(BigDecimal.TEN)
+                .lineTotal(BigDecimal.valueOf(179.98))
                 .build();
 
         wishlistResponse = WishlistResponse
@@ -144,6 +151,7 @@ class WishlistServiceImplTest {
         verify(userService).getUserId(httpRequest);
         verify(wishlistRepository).findByUser_UserId(1L);
         verify(productService).getNonDeletedProductById(100L);
+        verify(pricingService).calculatePriceSnapshot(any(Product.class));
         verify(wishlistItemRepository).save(any(WishlistItem.class));
         verify(wishlistRepository).save(wishlist);
         verify(wishlistItemMapper).toResponse(any(WishlistItem.class));
@@ -202,6 +210,7 @@ class WishlistServiceImplTest {
         verify(wishlistRepository).findByUser_UserId(1L);
         verify(userService).getUserById(1L);
         verify(productService).getNonDeletedProductById(100L);
+        verify(pricingService).calculatePriceSnapshot(any(Product.class));
         verify(wishlistItemRepository).save(any(WishlistItem.class));
         verify(wishlistRepository, times(2)).save(any(Wishlist.class));
         verify(wishlistItemMapper).toResponse(any(WishlistItem.class));

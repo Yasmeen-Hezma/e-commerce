@@ -16,6 +16,8 @@ public class CartResponse {
     private Long id;
     private Long userId;
     private List<CartItemResponse> items;
+    private BigDecimal subTotal;
+    private BigDecimal productDiscounts;
     private BigDecimal totalPrice;
     private List<StockWarning> warnings;
 }

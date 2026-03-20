@@ -12,7 +12,7 @@ import static com.ecommerce.e_commerce.common.utils.Constants.INVALID_ORDER_TOTA
 public class OrderTotalValidator extends PaymentOrderValidator {
     @Override
     protected void doValidate(Order order) {
-        if (order.getOrderTotal() == null || order.getOrderTotal().compareTo(BigDecimal.ZERO) <= 0) {
+        if (order.getTotalPrice() == null || order.getTotalPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidOrderTotalException(INVALID_ORDER_TOTAL);
         }
     }
