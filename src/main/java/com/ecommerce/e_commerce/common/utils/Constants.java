@@ -43,6 +43,7 @@ public class Constants {
     public static final String ORDER_ALREADY_HAS_A_SHIPPING_ADDRESS = "Order already has a shipping address";
     public static final String STOCK_ISSUES = "Stock issues detected for some products";
     public static final String CART_IS_EMPTY = "Cart is empty";
+    public static final String FAILED_TO_SEND_ORDER_CONFIRMATION_EMAIL = "Failed to send order confirmation email";
 
     // Shipping Address Validation
     public static final String GOVERNORATE_IS_REQUIRED = "Governorate is required";
