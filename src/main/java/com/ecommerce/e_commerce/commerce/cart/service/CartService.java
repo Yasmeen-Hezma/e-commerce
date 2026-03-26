@@ -19,4 +19,6 @@ public interface CartService {
     void clearCart(HttpServletRequest request);
 
     void checkCartExisting(Cart cart);
+
+    Cart getCartByUserId(Long userId);
 }

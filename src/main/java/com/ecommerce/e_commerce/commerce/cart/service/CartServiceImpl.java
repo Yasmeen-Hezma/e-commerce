@@ -143,7 +143,8 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    private Cart getCartByUser(Long userId) {
+    @Override
+    public Cart getCartByUserId(Long userId) {
         userService.getUserById(userId);
         return cartRepository.findByUser_UserId(userId).orElseGet(() -> createAndSaveNewCart(userId));
     }
@@ -193,7 +194,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public Cart getCartByUser(HttpServletRequest request) {
         Long userId = userService.getUserId(request);
-        return getCartByUser(userId);
+        return getCartByUserId(userId);
     }
 
     private void saveCartAndItem(Cart cart, CartItem cartItem) {
