@@ -35,11 +35,6 @@ import static com.ecommerce.e_commerce.common.utils.Constants.PAYPAL_ORDER_ID_MI
 @Component
 @RequiredArgsConstructor
 public class PaypalPaymentStrategy implements OnlinePaymentStrategy {
-    @Override
-    public PaymentMethod getPaymentMethod() {
-        return PaymentMethod.PAYPAL;
-    }
-
     public static final String APPROVE = "approve";
     public static final String USD = "USD";
     public static final String LIVE = "live";
@@ -62,6 +57,11 @@ public class PaypalPaymentStrategy implements OnlinePaymentStrategy {
     private String paypalMode;
     @Value("${app.base-url}")
     private String baseUrl;
+
+    @Override
+    public PaymentMethod getPaymentMethod() {
+        return PaymentMethod.PAYPAL;
+    }
 
     @Override
     public OnlinePaymentResponse createPayment(Long orderId) {

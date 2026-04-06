@@ -24,6 +24,7 @@ import static com.ecommerce.e_commerce.common.utils.Constants.*;
 @Service
 @RequiredArgsConstructor
 public class PricingServiceImpl implements PricingService {
+
     @Override
     public PriceResult calculateCart(List<CartItem> items) {
         return new BasePriceCalculator(items).calculate();
@@ -87,16 +88,16 @@ public class PricingServiceImpl implements PricingService {
             return BigDecimal.ZERO;
         }
         return switch (governorate.toLowerCase()) {
-            case "cairo", "giza" -> CAIRO_SHIPPING;
-            case "alexandria" -> ALEXANDRIA_SHIPPING;
+            case CAIRO, GIZA -> CAIRO_SHIPPING;
+            case ALEXANDRIA -> ALEXANDRIA_SHIPPING;
             default -> DEFAULT_SHIPPING;
         };
     }
 
     private BigDecimal validateAndGetPromoRate(String promoCode) {
         return switch (promoCode.toUpperCase()) {
-            case "SAVE15" -> SAVE_15_PROMO_CODE;
-            case "SAVE20" -> SAVE_20_PROMO_CODE;
+            case SAVE_15 -> SAVE_15_PROMO_CODE;
+            case SAVE_20 -> SAVE_20_PROMO_CODE;
             default -> throw new InvalidOperationException(INVALID_PROMO_CODE);
         };
     }

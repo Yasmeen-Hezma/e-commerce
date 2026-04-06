@@ -10,6 +10,7 @@ public class PaymentOrderValidationChain {
     private final OrderTotalValidator orderTotalValidator;
     private final OrderStatusValidator orderStatusValidator;
 
+    // build the order of the validations, and return the head (first validator)
     public PaymentOrderValidator build() {
         paymentAlreadyCompletedValidator
                 .linkWith(orderTotalValidator)

@@ -78,6 +78,11 @@ public class Constants {
     public static final BigDecimal SAVE_20_PROMO_CODE = new BigDecimal("0.20");
     public static final BigDecimal FIRST_ORDER_DISCOUNT = new BigDecimal("50.00");
     public static final String INVALID_PROMO_CODE = "Invalid promo code";
+    public static final String SAVE_15 = "SAVE15";
+    public static final String SAVE_20 = "SAVE20";
+    public static final String CAIRO = "cairo";
+    public static final String GIZA = "giza";
+    public static final String ALEXANDRIA = "alexandria";
 
     // General
     public static final String ERROR_HANDLING_REQUEST = "Error handling request";
